@@ -82,6 +82,9 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 	Reg#(Bit#(TMul#(`DCACHE_BLOCK_SIZE, TMul#(8, `DCACHE_WORD_SIZE)))) rg_data_line <- mkConfigRegU;
 
 	let this_pc = wr_request.pc;
+    
+    //custom flag for WB to special register
+    let xWB = wr_request.xWrite;
 
 	//Ifc_dcache dcache <- mkdcache;
 	DCacheIFC dcache <- mkDummyDCache;
@@ -113,9 +116,9 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 
 	function Action fn_handle_alu_ops(RequestWriteBack req);
 	action
-		wr_response <= WBResponse{rd: req.rd, data: tagged Valid req.data, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: False};
+		wr_response <= WBResponse{rd: req.rd, data: tagged Valid req.data, xWrite: xWB, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: False};
    	if (rg_verbosity > 1)
-		 $display($time, " CPU: WRITE-BACK: Instruction (PC: %h) performed an arithematic or logical operation. ARF Updated. REG: %d Value: %h", this_pc, req.rd, req.data);
+		 $display($time, " CPU: WRITE-BACK: Instruction (PC: %h) performed an arithmetic or logical operation. ARF Updated. REG: %d Value: %h", this_pc, req.rd, req.data);
 	endaction
 	endfunction
 
@@ -130,7 +133,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
    	   if (rg_verbosity > 1) $display($time, " CPU: WRITE-BACK: Branch instruction (PC: %h) encountered. Taken. Updated PC: %h", this_pc, npc);
    	end
    	else if (rg_verbosity > 1) $display($time, " CPU: WRITE-BACK: Branch instruction (PC: %h) encountered. Not Taken", this_pc);
-		wr_response <= WBResponse{rd: req.rd, data: data, next_pc: next_pc, retire: True, breakpoint: False, halt: False};
+		wr_response <= WBResponse{rd: req.rd, data: data, xWrite: xWB, next_pc: next_pc, retire: True, breakpoint: False, halt: False};
 	endaction
 	endfunction
 
@@ -155,7 +158,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 
 	function Action fn_handle_halt_ops(Bool req);
 	action
-		wr_response <= WBResponse{rd: 0, data: tagged Invalid, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: True};
+		wr_response <= WBResponse{rd: 0, data: tagged Invalid, xWrite: 0 next_pc: tagged Invalid, retire: True, breakpoint: False, halt: True};
 		if(rg_verbosity > 1) $display($time, " CPU: WRITE-BACK: [[HALTING]]. Reason: End of Instruction Stream. PC: %h", this_pc);
 	endaction
 	endfunction
@@ -181,10 +184,10 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
                   if (rg_verbosity > 1) $display($time, " CPU: WRITE-BACK: Instruction (PC: %h) performed a CSR (*RET) operation. Redirecting to PC: %h", this_pc, npc);
                end
          endcase
-			wr_response <= WBResponse{rd: req.rd, data: data, next_pc: next_pc, retire: True, breakpoint: False, halt: False};
+			wr_response <= WBResponse{rd: req.rd, data: data, xWrite: xWB, next_pc: next_pc, retire: True, breakpoint: False, halt: False};
       end
 	endaction
-	endfunction
+	endfunction 
 
 	rule rl_handle_writeback_requests(rg_dmem_state[0] == REQ);
 		let data = wr_request.data;
@@ -254,7 +257,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 					if (tlm_req_desc.command == WRITE)
 						$display($time, " CPU: WRITE-BACK: Instruction (PC: %h) performed a STORE operation. Addr: %h, Value: %h", this_pc, rsp.address, tlm_req_desc.data);
       	   end
-				wr_response <= WBResponse{rd: req.rd, data: data, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: False};
+				wr_response <= WBResponse{rd: req.rd, data: data, xWrite: xWB, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: False};
       	end
 		end
    endrule
@@ -270,7 +273,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
          let ret <- csrfile.try_pending_trap(wr_trap_data, this_pc);
 			next_pc = ret;
 		end
-		wr_response <= WBResponse{rd: 0, data: tagged Invalid, next_pc: next_pc, retire: True, breakpoint: breakpoint, halt: False}; // TODO Retire should be true only for ecall, ebreak. Fix this
+		wr_response <= WBResponse{rd: 0, data: tagged Invalid, xWrite: 0, next_pc: next_pc, retire: True, breakpoint: breakpoint, halt: False}; // TODO Retire should be true only for ecall, ebreak. Fix this
 	endrule
 
 	rule rl_handle_memory_request(rg_burst_count == 0);

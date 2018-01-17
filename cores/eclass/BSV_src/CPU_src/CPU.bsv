@@ -36,6 +36,29 @@ package CPU;
 // Privilege-Modes: U, M
 // Specification: RISC-V User-Level ISA Specification 2.1, RISC-V Privileged ISA Specification 1.9
 
+//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+//????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+
+
+/*
+//MODIFICATIONS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//adding in a separate register in WB stage
+//ADD instruction will write into this register, in addition to writing into register rd
+//^ a test to see if we can modify instructions
+
+//judging by module layout (with the register file being an imported library that is declared within this top level file...)
+1. declare the custom register in this file too (we can make it a single 32 bit register to make it easy).
+2. create the appropriate function/method to access (ie, read/write, but for now only write) this register
+3. the planned place to put the function call (commented out below underneath) occurs anytime there is a write to the register file
+4. if we want to make this modification exclusive to the ADD instruction, we have two potential choices
+    - add in the semantics for another control signal from the decode stage which decides when the custom register is written into
+    - do a custom check on the current instruction before writing in (this would violate CPU design conventions)
+    
+
+
+
+*/
+
 // ================================================================
 // Bluespec libraries
 
@@ -156,6 +179,10 @@ module mkCPU_Model#(Data hartid)(CPU_IFC);
    
    Wire#(Maybe#(Forward_Data)) wr_forwarded_data <- mkDWire(tagged Invalid);
    Reg #(FetchState) rg_dmem_state[2] <- mkCReg(2, REQ);
+   
+   //-----------------------
+   // Custom Register for special write back
+   Reg #(Data) specialRegister <- mkReg(0);
 
    // ---------
    // Helper functions
@@ -189,7 +216,7 @@ module mkCPU_Model#(Data hartid)(CPU_IFC);
       return ((r == 0) ? 0 : regfile._read(r));
    endfunction
 
-   // Function to read the Architectural (General-Purpose) Register File
+   // Function to write the Architectural (General-Purpose) Register File
    function Action fn_write_gpr (RegName r, Data d);
       action
          if (r != 0) regfile._write(r, d);
@@ -326,6 +353,7 @@ module mkCPU_Model#(Data hartid)(CPU_IFC);
    // MEMORY-ACCESS and WRITE-BACK
    // ======================================
     
+    //"take the data from the pipeline register, and give it to the WB module to process"
    rule rl_write_back_request (execute_cond);
       let req = f_ex_wb.first;
       writeback.request(req);
@@ -338,7 +366,16 @@ module mkCPU_Model#(Data hartid)(CPU_IFC);
       if(rsp.halt == True) halt = True;
       else if(rsp.breakpoint == True) rg_stop_requested[0] <= True;
       else begin
-         if(rsp.data matches tagged Valid .data) fn_write_gpr(rsp.rd, data);
+         if(rsp.data matches tagged Valid .data)
+            fn_write_gpr(rsp.rd, data);
+            //function call to custom register should be put here?
+            //
+            
+            if (rsp.xWrite = 1) begin
+                specialRegister._write(data);
+            end                                            
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
          if(rsp.next_pc matches tagged Valid .next_pc) begin
             fetch.redirect_stage_3(next_pc);
             pwr_flush.send;

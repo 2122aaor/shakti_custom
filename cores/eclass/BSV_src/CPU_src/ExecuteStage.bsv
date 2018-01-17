@@ -67,6 +67,7 @@ module mkExecute (Execute_IFC);
    Wire #(ExecuteData) wr_request   <- mkWire;
    Wire #(Maybe#(CommitType#(`TLM_PRM_REQ_CPU))) wr_response <- mkWire;
    Reg  #(Data) rg_last_exec_pc <- mkConfigRegU;   // PC of last instruction executed. Used for verification purposes only
+   //Bit#(1) specialWB; //might delete this line
 
    // ---------
    // Utility functions
@@ -149,6 +150,7 @@ module mkExecute (Execute_IFC);
       Data op1 = v1, op2 = sx_imm_I;
       let res = ?;
       let match1 = True, match2 = True;
+      Bit#(1) specialWB = 0; //custom flag bit for special write
       case (funct3)
          f3_ADDI  : res <- wrapper_add_1.func(op1, op2);
          f3_SLTI  : res <- wrapper_lt_1.func(op1, op2, True);
@@ -164,8 +166,10 @@ module mkExecute (Execute_IFC);
          {f3_SRAI, f7_SRAI} : res <- wrapper_sra_1.func(op1, shift_amt);
          default: match2 = False;
       endcase
-      if(match1 || match2) wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: res};
-      else wr_response <= tagged Invalid;
+      if(match1 || match2) 
+         wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: res, xWrite: specialWB};
+      else 
+         wr_response <= tagged Invalid;
    endaction
    endfunction
 
@@ -188,7 +192,7 @@ module mkExecute (Execute_IFC);
    endaction
    endfunction
 
-   // Execute instructions performing LOAD
+   // Execute instructions performing STORE
    function Action fn_exec_store(Funct3 funct3, Data v1, Data v2, Data sx_imm_S);
    action
       Req_Desc_CPU tlm_req = defaultValue;
@@ -206,7 +210,7 @@ module mkExecute (Execute_IFC);
    endaction
    endfunction
 
-   // Execute control transfer instructions
+   // Execute control transfer instructions (branches)
    function Action fn_exec_branch(Funct3 funct3, Addr pc, Data v1, Data v2, Data sx_imm_B);
    action
       Data_S sign_v1 = unpack(v1);
@@ -251,24 +255,27 @@ module mkExecute (Execute_IFC);
    // Execute LUI instruction
    function Action fn_exec_lui(RegName rd, Imm_U imm_U);
    action
+      Bit#(1) specialWB = 0; //custom flag bit for special write
       Data lui_imm = imm_U;
-      wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: lui_imm};
+      wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: lui_imm, xWrite: specialWB};
    endaction
    endfunction
 
    // Execute AUIPC instruction
    function Action fn_exec_auipc(Addr pc, RegName rd, Imm_U imm_U);
    action
+      Bit#(1) specialWB = 0; //custom flag bit for special write
       Addr lui_imm = imm_U;
       lui_imm = pc + lui_imm;
-      wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: lui_imm};
+      wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: lui_imm, xWrite: specialWB};
    endaction
    endfunction
 
    // Execute FENCE instruction
    function Action fn_exec_miscmem; // TODO Implement this properly. Implemented as nop for now
    action
-      wr_response <= tagged Valid tagged WB RequestWriteBack{rd: 0, data: 0};
+      Bit#(1) specialWB = 0; //custom flag bit for special write
+      wr_response <= tagged Valid tagged WB RequestWriteBack{rd: 0, data: 0, xWrite: specialWB};
    endaction
    endfunction
 
@@ -278,6 +285,7 @@ module mkExecute (Execute_IFC);
    // Execute M Extension instructions. Register-Register instruction are also defined here as they have the same opcode
    function Action fn_exec_mul_32(Funct3 funct3, Funct7 funct7, RegName rd, Data v1, Data v2);
    action
+      Bit#(1) specialWB = ?; //custom flag bit for special write, make it unknown for now
       let shift_amt = v2[4:0];
       Data op1 = v1, op2 = v2;
       Data_S sop1 = unpack(op1), sop2 = unpack(op2);
@@ -326,8 +334,18 @@ module mkExecute (Execute_IFC);
          {f3_OR,  f7_OR}         : res <- wrapper_or_1.func(op1, op2);
          default: match1 = False;
       endcase
-      if(match1 == True) wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: res};
-      else wr_response <= tagged Invalid;
+      
+      //set up specialWB flag for ADD instruction only
+      if ({funct3, funct7} = {f3_ADD, f7_ADD})
+         specialWB = 1;
+      else
+         specialWB = 0;
+      
+      if(match1 == True)
+         //at this point, a request for write back is already being prepared, with the data to write and the register to write to
+         wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: res, xWrite: specialWB};
+      else 
+         wr_response <= tagged Invalid;
    endaction
    endfunction
 

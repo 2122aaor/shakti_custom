@@ -72,6 +72,9 @@ typedef Bit #(7)  Opcode;
 typedef Bit #(5)  RegName; // 32 registers, x0..x31
 typedef Bit #(1)  AqFlag; // Aquire Flag
 typedef Bit #(1)  RlFlag; // Release Flag
+
+typedef Bit #(1)  XWriteFlag; //flag for writing into custom register
+
 typedef Bit #(12) Imm_I;
 typedef Bit #(12) Imm_S;
 typedef Bit #(13) Imm_B;
