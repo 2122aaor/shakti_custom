@@ -1,0 +1,8 @@
+RED='\033[0;31m'
+NC='\033[0m'
+if [ ! -f ./code.hex ]; then
+    echo -e "${RED}code.hex is missing in this folder. Please copy it here${NC}"
+    exit
+fi
+ncverilog -q +nc64bit -c +access+r +name+snap_mkTestbench +nclibdirname+INCA_libs_mkTestbench +libext+.v -y ../verilog  +define+TOP=mkTestbench +nowarn+LIBNOU ../verilog/main.v ../verilog/mkTestbench.v
+ncverilog -q -R +nc64bit +name+snap_mkTestbench +nclibdirname+INCA_libs_mkTestbench > rtl_log.txt

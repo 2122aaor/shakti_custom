@@ -1,0 +1,14 @@
+RED='\033[0;31m'
+NC='\033[0m'
+if [ ! -f ./code.mem ]; then
+    echo -e "${RED}code.mem is missing in this folder. Please copy it here${NC}"
+    exit
+fi
+if [ ! -f ./config_string.hex ]; then
+    echo -e "${RED}config_string.hex is missing in this folder. Please copy it here${NC}"
+    exit
+fi
+
+iverilog -v -o out -Wall -y ../../verilog/ -DTOP=mkhost ../../verilog/main.v ../../verilog/mkhost.v
+./out > rtl_log.txt
+

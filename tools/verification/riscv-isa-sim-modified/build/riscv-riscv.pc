@@ -1,0 +1,11 @@
+prefix=/home/rise/tools/riscv-tools/riscv
+exec_prefix=/home/rise/tools/riscv-tools/riscv
+libdir=${prefix}/${exec_prefix}/lib
+includedir=${prefix}/${prefix}/include
+
+Name: riscv-riscv
+Description: RISC-V 
+Version: git
+Libs: -Wl,-rpath,${libdir} -L${libdir} -lriscv
+Cflags: -I${includedir}
+URL: http://riscv.org/download.html#tab_spike

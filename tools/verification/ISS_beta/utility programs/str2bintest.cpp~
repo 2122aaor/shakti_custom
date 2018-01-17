@@ -1,0 +1,19 @@
+#include<iostream>
+
+using namespace std;
+
+void str2bin(int *bin,string str)
+{
+	int l = str.size();
+	int i;
+	for (i = 0; i < l; ++i)
+	{
+		bin[i] = (int)str[i] - 48;		
+	}
+}
+
+int main()
+{
+
+return 0;
+}

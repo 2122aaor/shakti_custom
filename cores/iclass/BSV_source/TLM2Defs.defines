@@ -1,0 +1,9 @@
+// Macro definitions for TLM2 transactions for 	SHAKTI I-Class Processor
+
+// TLM2 Request Response definitions for Processor to Bus connection
+`define TLM_PRM_CPU_REQ 6, 64, 64, 8, Bit #(0)
+`define TLM_PRM_CPU_RSP 6, 64, 64, 8, Bit #(0)
+
+// TLM2 Request Response definitions for Memory to Bus connection
+`define TLM_PRM_MEM_REQ 6, 64, 64, 8, Bit #(0)
+`define TLM_PRM_MEM_RSP 6, 64, 64, 8, Bit #(0)

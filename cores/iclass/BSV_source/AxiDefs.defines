@@ -1,0 +1,11 @@
+`include "TLM2Defs.defines"
+
+// Macro definitions for Axi Bus transactions for 	SHAKTI I-Class Processor
+
+// Axi Request Response definitions for Processor as a Master
+`define AXI_PRM_CPU	6, 64, 64, 8, Bit #(0)	// Fabric Interface
+`define AXI_XTR_CPU TLMRequest #(`TLM_PRM_CPU_REQ), TLMResponse #(`TLM_PRM_CPU_RSP), `AXI_PRM_CPU // Transactor Interface
+
+// Axi Request Response definitions for Memory as a Slave
+`define AXI_PRM_MEM	6, 64, 64, 8, Bit #(0)	// Fabric Interface
+`define AXI_XTR_MEM TLMRequest #(`TLM_PRM_MEM_REQ), TLMResponse #(`TLM_PRM_MEM_RSP), `AXI_PRM_MEM // Transactor Interface

@@ -1,0 +1,23 @@
+//`define CPU_MODE_NORMAL
+
+`ifndef CPU_MODE_NORMAL
+	//`define CPU_MODE_DEBUG
+	`define CPU_MODE_VERIFICATION
+`endif
+
+`define INSTRUCTION_MEM_BASE_ADDRESS 0
+`define INSTRUCTION_STREAM_LENGTH 10240
+`define INSTRUCTION_MEM_SIZE `INSTRUCTION_STREAM_LENGTH
+
+`define DATA_MEM_BASE_ADDRESS 0
+`define DATA_MEM_SIZE 1048575
+
+`define PC_INIT_VALUE 2147483648 //80000000
+
+`define INSTRUCTION_MEM_INIT_FILE "code.mem"
+`define DATA_MEM_INIT_FILE "code.mem"
+//`define DATA_MEM_INIT_FILE "memory.hex"
+`define CONFIG_MEM_INIT_FILE "config_string.hex"
+
+`define FILE_MEM_DUMP "RTL_Memory_dump.txt"
+`define FILE_REG_DUMP "rtl_register_dump.txt"

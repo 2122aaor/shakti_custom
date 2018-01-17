@@ -1,0 +1,9 @@
+RED='\033[0;31m'
+NC='\033[0m'
+if [ ! -f ./code.hex ]; then
+    echo -e "${RED}code.hex is missing in this folder. Please copy it here${NC}"
+    exit
+fi
+
+iverilog -v -o out -Wall ../verilog/ -DTOP=mkTestbench ../verilog/main.v ../verilog/mkTestbench.v
+./out > rtl_log.txt

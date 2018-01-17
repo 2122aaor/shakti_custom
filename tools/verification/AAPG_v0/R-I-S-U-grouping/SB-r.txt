@@ -1,0 +1,6 @@
+BEQ
+BNE
+BLT
+BGE
+BLTU
+BGEU

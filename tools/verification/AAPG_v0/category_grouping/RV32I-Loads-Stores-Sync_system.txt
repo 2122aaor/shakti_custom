@@ -1,0 +1,8 @@
+LB
+LH
+LW
+LBU
+LHU
+SB
+SH
+SW

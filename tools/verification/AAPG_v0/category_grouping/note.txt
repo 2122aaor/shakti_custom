@@ -1,0 +1,10 @@
+removed :
+R32I Branch - Counter
+ 	RDCYCLE
+	RDTIME
+	RDINSTRET
+R32I load store :
+	FENCE
+	FENCE.I
+	SCALL
+	SBREAK

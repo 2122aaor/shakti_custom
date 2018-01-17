@@ -1,0 +1,6 @@
+# ignore following files
+*.ba
+*.bo
+*.cxx
+*.h
+*.o

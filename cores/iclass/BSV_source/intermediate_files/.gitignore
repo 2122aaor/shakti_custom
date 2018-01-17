@@ -1,0 +1,4 @@
+# gitignore to keep the folder clean
+
+*
+!.gitignore
