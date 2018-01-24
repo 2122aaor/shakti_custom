@@ -336,7 +336,7 @@ module mkExecute (Execute_IFC);
       endcase
       
       //set up specialWB flag for ADD instruction only
-      if ({funct3, funct7} = {f3_ADD, f7_ADD})
+      if ({funct3, funct7} == {f3_ADD, f7_ADD})
          specialWB = 1;
       else
          specialWB = 0;

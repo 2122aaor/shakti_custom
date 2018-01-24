@@ -366,14 +366,15 @@ module mkCPU_Model#(Data hartid)(CPU_IFC);
       if(rsp.halt == True) halt = True;
       else if(rsp.breakpoint == True) rg_stop_requested[0] <= True;
       else begin
-         if(rsp.data matches tagged Valid .data)
+         if(rsp.data matches tagged Valid .data) begin
             fn_write_gpr(rsp.rd, data);
             //function call to custom register should be put here?
             //
             
-            if (rsp.xWrite = 1) begin
+            if (rsp.xWrite == 1) 
                 specialRegister._write(data);
-            end                                            
+                $display($time, " CPU: WRITE-BACK SPECIAL: Instruction (PC: %h) performed a special write back. REG: %d Value: %h", writeback.pc, rsp.rd, rsp.data);
+         end                                             
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
          if(rsp.next_pc matches tagged Valid .next_pc) begin

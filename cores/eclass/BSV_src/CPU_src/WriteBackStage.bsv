@@ -59,6 +59,7 @@ interface WriteBackIFC;
 	method Action request (EXWB_Data req);
 	method WBResponse response;
 	interface TLMSendIFC #(Req_CPU, Rsp_CPU) bus_ifc;
+    method Addr pc;
 	method Action reset (int verbosity);
 endinterface
 
@@ -84,7 +85,21 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 	let this_pc = wr_request.pc;
     
     //custom flag for WB to special register
-    let xWB = wr_request.xWrite;
+    //let xWB = 1;
+    Wire #(XWriteFlag) xWB <- mkWire;
+    /*
+    if (wr_request.commitType matches tagged Valid tagged WB) begin
+        if (wr_request.commitType.RequestWriteBack.xWrite = 1) 
+            let xWB = 1;
+        else
+            let xWB = 1;
+    else
+        let xWB = 1;
+    end
+    
+    
+    */
+    //let xWB = wr_request.commitType;
 
 	//Ifc_dcache dcache <- mkdcache;
 	DCacheIFC dcache <- mkDummyDCache;
@@ -158,7 +173,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 
 	function Action fn_handle_halt_ops(Bool req);
 	action
-		wr_response <= WBResponse{rd: 0, data: tagged Invalid, xWrite: 0 next_pc: tagged Invalid, retire: True, breakpoint: False, halt: True};
+		wr_response <= WBResponse{rd: 0, data: tagged Invalid, xWrite: 0, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: True};
 		if(rg_verbosity > 1) $display($time, " CPU: WRITE-BACK: [[HALTING]]. Reason: End of Instruction Stream. PC: %h", this_pc);
 	endaction
 	endfunction
@@ -189,6 +204,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 	endaction
 	endfunction 
 
+    //attempt modification of this rule instead to implement the special write back
 	rule rl_handle_writeback_requests(rg_dmem_state[0] == REQ);
 		let data = wr_request.data;
 		let pending_interrupt = csrfile.read_pending_interrupt;
@@ -317,6 +333,79 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
       let last_response <- dcache.response_from_memory(From_Memory_D{data_line: rsp.data, bus_error: (rsp.status != SUCCESS) ? 1:0, misaligned_error: 0, address: rg_burst_addr});
       if(rg_verbosity > 3) $display($time, " CPU: WRITE_BACK: Memory-I/O. Response. Type: ", fshow(rsp.command), " Addr: %h, Data: %h, Size: %d, Length: %d", rg_burst_addr, rsp.data, rg_burst_size, rg_burst_length);
 	endrule
+    
+    //CUSTOM RULE FOR THE SPECIAL WRITE BACK**************************************************************************************
+    rule special_writeback;
+        XWriteFlag xWB = ?;
+        /*
+        Maybe #(RequestWriteBack) temp = wr_request.data.StageD.WB;
+        //if (wr_request.data.StageD.WB matches tagged Valid WB) begin
+        if (temp matches tagged Valid RequestWriteBack) begin
+            if (wr_request.RequestWriteBack.xWrite == 1) begin
+                xWB = 1;
+            end
+            else
+                xWB = 0;
+        end   
+        else
+            xWB = 0;
+        */    
+            
+        let temp = tagged Invalid;  
+        let data = wr_request.data;
+        if(data matches tagged StageD .s_data) begin
+			case (s_data) matches
+				tagged WB .v:
+                    begin
+                        if (wr_request.data.StageD.WB.xWrite == 1) begin
+                            xWB = 1;                              
+                        end
+                        else
+                            xWB = 0;
+                        temp = tagged Valid v;
+                    end
+                    /*
+                    begin
+                        if (wr_request.data.StageD.WB.xWrite == 1) begin
+                            xWB = 1;                              
+                        end
+                        else
+                            xWB = 0;
+                    end
+                    */
+                    //xWB = 1;
+				tagged LS .v:
+                    begin
+                        xWB = 0;
+                        temp = tagged Valid v;
+                    end
+				tagged JMP .v:
+                    begin
+                        xWB = 0;
+                        temp = tagged Valid v;
+                    end
+				tagged SYS .v:
+                    begin
+                        xWB = 0;
+                        temp = tagged Valid v;
+                    end
+				tagged Halt .v:
+                    begin
+                        xWB = 0;
+                        temp = tagged Valid v;
+                    end
+				default:
+                    begin
+                        xWB = 0;
+                        temp = tagged Invalid;
+                    end
+			endcase
+		end
+        else
+            xWB = 0;
+        
+    endrule
+    
 
    interface TLMSendIFC bus_ifc = toSendIFC(f_dmem_reqs, f_dmem_rsps);
 
@@ -327,6 +416,11 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 	method WBResponse response;
 		return wr_response;
 	endmethod
+    
+    //new method to get PC from WB stage
+    method Addr pc;
+        return this_pc;
+    endmethod
 
 	method Action reset(int verbosity);
 		rg_verbosity <= verbosity;
