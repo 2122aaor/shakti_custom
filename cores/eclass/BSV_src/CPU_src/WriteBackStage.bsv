@@ -320,7 +320,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 
 	rule rl_follow_up_store_request(rg_burst_count >= 1 && rg_burst_count < truncate(rg_burst_length));
 		Req_data_CPU req = ?;
-		req.data = truncate(rg_data_line);
+        req.data = truncate(rg_data_line);
 		f_dmem_reqs.enq(tagged Data req);
 		rg_data_line <= (rg_data_line >> valueof(XLEN));
 		if(rg_burst_count == rg_burst_length - 1) rg_burst_count <= 0;
@@ -336,7 +336,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
     
     //CUSTOM RULE FOR THE SPECIAL WRITE BACK**************************************************************************************
     rule special_writeback;
-        XWriteFlag xWB = ?;
+        //XWriteFlag xWB = ?;
         /*
         Maybe #(RequestWriteBack) temp = wr_request.data.StageD.WB;
         //if (wr_request.data.StageD.WB matches tagged Valid WB) begin
@@ -358,10 +358,10 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 				tagged WB .v:
                     begin
                         if (wr_request.data.StageD.WB.xWrite == 1) begin
-                            xWB = 1;                              
+                            xWB <= 1;                              
                         end
                         else
-                            xWB = 0;
+                            xWB <= 0;
                         temp = tagged Valid v;
                     end
                     /*
@@ -376,33 +376,33 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
                     //xWB = 1;
 				tagged LS .v:
                     begin
-                        xWB = 0;
+                        xWB <= 0;
                         temp = tagged Valid v;
                     end
 				tagged JMP .v:
                     begin
-                        xWB = 0;
+                        xWB <= 0;
                         temp = tagged Valid v;
                     end
 				tagged SYS .v:
                     begin
-                        xWB = 0;
+                        xWB <= 0;
                         temp = tagged Valid v;
                     end
 				tagged Halt .v:
                     begin
-                        xWB = 0;
+                        xWB <= 0;
                         temp = tagged Valid v;
                     end
 				default:
                     begin
-                        xWB = 0;
+                        xWB <= 0;
                         temp = tagged Invalid;
                     end
 			endcase
 		end
         else
-            xWB = 0;
+            xWB <= 0;
         
     endrule
     

@@ -371,7 +371,7 @@ module mkCPU_Model#(Data hartid)(CPU_IFC);
             //function call to custom register should be put here?
             //
             
-            if (rsp.xWrite == 1) 
+            //if (rsp.xWrite == 1) 
                 specialRegister._write(data);
                 $display($time, " CPU: WRITE-BACK SPECIAL: Instruction (PC: %h) performed a special write back. REG: %d Value: %h", writeback.pc, rsp.rd, rsp.data);
          end                                             
