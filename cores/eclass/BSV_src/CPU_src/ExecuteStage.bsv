@@ -150,7 +150,7 @@ module mkExecute (Execute_IFC);
       Data op1 = v1, op2 = sx_imm_I;
       let res = ?;
       let match1 = True, match2 = True;
-      Bit#(1) specialWB = 0; //custom flag bit for special write
+      Bit#(1) specialWB = ?; //custom flag bit for special write
       case (funct3)
          f3_ADDI  : res <- wrapper_add_1.func(op1, op2);
          f3_SLTI  : res <- wrapper_lt_1.func(op1, op2, True);
@@ -166,6 +166,13 @@ module mkExecute (Execute_IFC);
          {f3_SRAI, f7_SRAI} : res <- wrapper_sra_1.func(op1, shift_amt);
          default: match2 = False;
       endcase
+      
+      //set up specialWB flag for ADDI instruction only
+      if (funct3 == f3_ADDI)
+         specialWB = 1;
+      else
+         specialWB = 0;
+      
       if(match1 || match2) 
          wr_response <= tagged Valid tagged WB RequestWriteBack{rd: rd, data: res, xWrite: specialWB};
       else 
