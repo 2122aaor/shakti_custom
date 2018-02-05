@@ -115,7 +115,7 @@ module mkWriteBack#(CSR_IFC csrfile)(WriteBackIFC);
 	action
 		wr_response <= WBResponse{rd: req.rd, data: tagged Valid req.data, next_pc: tagged Invalid, retire: True, breakpoint: False, halt: False};
    	if (rg_verbosity > 1)
-		 $display($time, " CPU: WRITE-BACK: Instruction (PC: %h) performed an arithematic or logical operation. ARF Updated. REG: %d Value: %h", this_pc, req.rd, req.data);
+		 $display($time, " CPU: WRITE-BACK: Instruction (PC: %h) performed an arithmetic or logical operation. ARF Updated. REG: %d Value: %h", this_pc, req.rd, req.data);
 	endaction
 	endfunction
 
