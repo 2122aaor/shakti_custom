@@ -229,6 +229,10 @@ Opcode op_RR = { 5'h0C, tail };  // Register-Register
 
 Funct3 f3_ADD   = 3'b000;     // 0
 Funct7 f7_ADD   = 7'b0000000; // 0
+//CUSTOM
+Funct3 f3_ADDC  = 3'b000;     // 0
+Funct7 f7_ADDC  = 7'b1000000; // 64
+//END CUSTOM
 Funct3 f3_SUB   = 3'b000;     // 0
 Funct7 f7_SUB   = 7'b0100000; // 16
 Funct3 f3_SLL   = 3'b001;     // 1

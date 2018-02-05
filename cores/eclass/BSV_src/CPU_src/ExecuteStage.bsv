@@ -315,6 +315,9 @@ module mkExecute (Execute_IFC);
                                    end
          // Register-Register Instructions
          {f3_ADD, f7_ADD}        : res <- wrapper_add_1.func(op1, op2);
+         //CUSTOM
+         {f3_ADDC, f7_ADDC}      : res <- wrapper_add_1.func(op1, op2);
+         //END CUSTOM
          {f3_SUB, f7_SUB}        : res <- wrapper_sub_1.func(op1, op2);
          {f3_SLL, f7_SLL}        : res <- wrapper_sll_1.func(op1, shift_amt);
          {f3_SRL, f7_SRL}        : res <- wrapper_srl_1.func(op1, shift_amt);

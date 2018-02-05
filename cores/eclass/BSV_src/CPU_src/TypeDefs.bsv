@@ -265,7 +265,7 @@ typedef struct {
 
 UInt #(8) sz_byte = 8, sz_hword = 16, sz_word = 32, sz_dword = 64, sz_qword = 128;
 
-typedef enum {ADD, SLT, SLTU, XOR, OR, AND, SLL, SRL, SRA, SUB, MUL, MULSU, MULU, DIV, DIVU, REM, REMU} ALUFunct deriving (Bits, Eq);
+typedef enum {ADD, ADDC, SLT, SLTU, XOR, OR, AND, SLL, SRL, SRA, SUB, MUL, MULSU, MULU, DIV, DIVU, REM, REMU} ALUFunct deriving (Bits, Eq);
 
 typedef struct {
 	ALUFunct aluFunct;
