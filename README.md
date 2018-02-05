@@ -1,5 +1,19 @@
 Note: the readme below was copied from the shakti_republic repository. The information it contains may no longer be relevant to this repository
 
+GOALS FOR THIS BRANCH: attempt to add in a new instruction that has the exact same micro-architectural affects as an existing instruction.
+In this case, we attempt to clone the ADD instruction into our own custom instruction (if the simulation input does not use any ADD, we will clone ADDI instead)
+
+THE SETUP:
+
+Instruction name: "ADDC"
+opcode: 0110011 (same as ADD)
+funct3: 000 (same as ADD)
+funct7: 1000000 (custom, does not overlap with any existing instructions in all current existing subsets)
+architectural effects: reads rs1 and rs2, adds together, writes into rd (same as ADD)
+
+END>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.
+!@#$%^&*()_+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 NOTE: 
 SOME OF THE CODELINE (ESPECIALLY the C Class) IN THIS REPO IS OUTDATED. WE ARE IN THE MIDDLE OF A TAPEOUT AND THUS MAINTAINING A PRIVATE REPO WHICH CONTAINS SOME PROPREITARY FOUNDRY ITEMS. 
 REPO WILL BE UPDATED TO THE LATEST CODELINE BY FIRST WEEK OF DECEMBER ONCE WE SANITIZE THE CODE FOR PUBLIC CONSUMPTION.
